@@ -22,6 +22,9 @@ services:
     build:
       context: ./server
       dockerfile: server.dockerfile
+    command: >
+      bash -c "alembic upgrade head 
+      && uvicorn backend.service.main:app --reload --host=0.0.0.0 --port=8003"
     container_name: receipt_service_server
     volumes:
       - ./server:/server
