@@ -28,7 +28,7 @@ def upgrade() -> None:
             "username",
             sa.String(length=256),
             nullable=False,
-            comment="Unique email address",
+            comment="Unique username",
         ),
         sa.Column(
             "hashed_password", sa.String(), nullable=False, comment="Hashed password"
@@ -41,6 +41,7 @@ def upgrade() -> None:
             comment="User created at",
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("username"),
     )
     op.create_index(
         "ix_user_created_at_btree",

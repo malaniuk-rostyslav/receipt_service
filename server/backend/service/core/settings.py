@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Optional
 
 from pydantic import validator
@@ -7,19 +8,16 @@ from .validators import PostgresDsn
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str
+    BACKEND_CORS_ORIGINS: str = os.getenv("BACKEND_CORS_ORIGINS")
 
-    POSTGRES_SERVER: str
+    # Postgres
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    CONFIRM_ACCOUNT_TOKEN_EXPIRE_MINUTES: int = 10
-    CONFIRM_ACCOUNT_TOKEN_EXPIRE_SECONDS: Optional[int] = None
-    RESET_PASSWORD_TOKEN_EXPIRE_MINUTES: int = 10
-    RESET_PASSWORD_TOKEN_EXPIRE_SECONDS: Optional[int] = None
+    DB_PORT: str
+    POSTGRES_SERVER: str
+    API_V1_STR: str = "/"
+    PROJECT_NAME: str
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
@@ -28,10 +26,10 @@ class Settings(BaseSettings):
             return v
         return PostgresDsn.build(
             scheme="postgresql",
-            # user=values.get("POSTGRES_USER"),
+            username=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
             host=values.get("POSTGRES_SERVER"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
+            path=f"{values.get('POSTGRES_DB') or ''}",
         )
 
     class Config:
