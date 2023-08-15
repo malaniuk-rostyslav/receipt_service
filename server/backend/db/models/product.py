@@ -30,9 +30,8 @@ class Product(Base):
         nullable=False,
     )
     receipts = relationship(
-        "Product",
+        "Receipt",
         secondary=association_receipt_product_table,
-        back_populates="product",
         lazy="noload",
     )
     created_at = Column(

@@ -7,7 +7,10 @@ from .constants import MAX_LENGTH_USER_NAME
 class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, comment="Unique id")
     username = Column(
-        String(MAX_LENGTH_USER_NAME), nullable=False, comment="Unique email address"
+        String(MAX_LENGTH_USER_NAME),
+        nullable=False,
+        unique=True,
+        comment="Unique username",
     )
     hashed_password = Column(String, nullable=False, comment="Hashed password")
     created_at = Column(

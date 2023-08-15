@@ -23,7 +23,6 @@ class Receipt(Base):
     products = relationship(
         "Product",
         secondary=association_receipt_product_table,
-        back_populates="receipt",
         lazy="noload",
     )
     payment_type = Column(
