@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel, PositiveInt, confloat
@@ -19,3 +20,13 @@ class Payment(BaseModel):
 class ReceiptCreate(BaseModel):
     products: List[Product]
     payment: Payment
+
+
+class ReceiptResponse(BaseModel):
+    id: PositiveInt
+    creator_id: PositiveInt
+    payment_type: PaymentType
+    amount: confloat(gt=0)
+    total: confloat(gt=0)
+    rest: float
+    created_at: datetime
