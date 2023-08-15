@@ -1,16 +1,8 @@
 from sqlalchemy import (DECIMAL, VARCHAR, Column, DateTime, ForeignKey, Index,
-                        Integer, Table, func)
-from sqlalchemy.orm import relationship
+                        Integer, func)
 
 from ..base import Base
 from .constants import PaymentType
-
-association_receipt_product_table = Table(
-    "association_receipt_product_table",
-    Base.metadata,
-    Column("receipt_id", ForeignKey("receipt.id", ondelete="CASCADE")),
-    Column("product_id", ForeignKey("product.id", ondelete="CASCADE")),
-)
 
 
 class Receipt(Base):
@@ -19,11 +11,6 @@ class Receipt(Base):
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
         comment="Receipt created by user id",
-    )
-    products = relationship(
-        "Product",
-        secondary=association_receipt_product_table,
-        lazy="noload",
     )
     payment_type = Column(
         VARCHAR,
@@ -48,7 +35,6 @@ class Receipt(Base):
         server_default=func.now(),
         comment="Receipt created at",
     )
-
     _table_args_ = (
         Index("ix_receipt_id_btree", id, postgresql_using="btree"),
         Index("ix_receipt_payment_type_btree", payment_type, postgresql_using="btree"),

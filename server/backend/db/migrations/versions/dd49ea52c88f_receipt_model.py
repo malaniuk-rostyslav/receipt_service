@@ -1,8 +1,8 @@
 """Receipt model
 
-Revision ID: 493315a8e313
-Revises: 0b1bf0b187f5
-Create Date: 2023-08-14 21:01:43.170072
+Revision ID: dd49ea52c88f
+Revises: 99d17ced5690
+Create Date: 2023-08-15 12:09:26.605897
 
 """
 from typing import Sequence, Union
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "493315a8e313"
-down_revision: Union[str, None] = "0b1bf0b187f5"
+revision: str = "dd49ea52c88f"
+down_revision: Union[str, None] = "99d17ced5690"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
