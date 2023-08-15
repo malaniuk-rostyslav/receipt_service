@@ -16,6 +16,17 @@ router = APIRouter()
     "/register", status_code=status.HTTP_201_CREATED, response_model=UserSchema
 )
 def register_user(form_data: UserCreate, db: Session = Depends(get_db)) -> Any:
+    """
+    Register user \n
+    FORM data: \n
+    `username`: str \n
+    `password`: str \n
+    `password_confirm`: Optional[str] \n
+    Responses: \n
+    `201` Created \n
+    `400` NotFound - Returns if User with such username already exists \n
+    `422` Unprocessable Entity - Returns if wrong form_data field
+    """
     username_exists = db.query(
         db.query(models.User)
         .filter(models.User.username == form_data.username)
