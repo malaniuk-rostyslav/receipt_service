@@ -59,6 +59,23 @@ async def create_receipt(
         rest=rest,
     )
     db.add(receipt)
+    db.flush()
+    for i in form_data.products:
+        product = (
+            db.query(models.Product).filter(models.Product.name == i.name).one_or_none()
+        )
+        if not product:
+            product = models.Product(
+                creator_id=current_user.id, name=i.name, price=i.price
+            )
+            db.add(product)
+            db.flush()
+        association_receipt_product = (
+            models.association_receipt_product_table.insert().values(
+                receipt_id=receipt.id, product_id=product.id, quantity=i.quantity
+            )
+        )
+        db.execute(association_receipt_product)
     db.commit()
     [
         product.__dict__.update(
@@ -115,12 +132,12 @@ async def get_my_receipts(
 
 
 @router.get("/{receipt_id}", status_code=status.HTTP_200_OK)
-async def get_my_receipt_by_id(
+async def get_my_text_receipt_by_id(
     receipt_id: PositiveInt,
     db: Session = Depends(get_db),
 ):
     """
-    Get My Receipt By ID \n
+    Get My Text Receipt By ID \n
     Path parameters: \n
     `receipt_id`: Receipt ID \n
     Responses: \n
@@ -131,19 +148,41 @@ async def get_my_receipt_by_id(
     receipt = (
         db.query(models.Receipt).filter(models.Receipt.id == receipt_id).one_or_none()
     )
+    association_receipt_product = (
+        db.query(models.association_receipt_product_table)
+        .filter(models.association_receipt_product_table.c.receipt_id == receipt_id)
+        .all()
+    )
+    product_info = ""
+    for i in association_receipt_product:
+        product = (
+            db.query(models.Product)
+            .filter(models.Product.id == i.product_id)
+            .one_or_none()
+        )
+        product_info += (
+            f"{float(i.quantity)} X {product.price}\n"
+            f"{product.name}"
+            + (35 - len(f"{product.name}") - len(f"{receipt.total}")) * " "
+            + f"{receipt.total}\n"
+            "===================================\n"
+        )
     if not receipt:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Receipt not found",
         )
     text_receipt = (
-        "             Our shop        \n"
-        "=================================\n"
-        f"Amount                        {receipt.amount}\n"
-        f"{receipt.payment_type}                          {receipt.total}\n"
-        f"Rest                          {receipt.rest}\n"
-        "=================================\n"
-        f"      {receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}            \n"
-        "      Thanks for visiting us    "
+        "              Our shop             \n"
+        "===================================\n"
+        f"{product_info}\n"
+        "Amount" + (35 - 6 - len(f"{receipt.amount}")) * " " + f"{receipt.amount}\n"
+        f"{receipt.payment_type}"
+        + (35 - len(f"{receipt.payment_type}") - len(f"{receipt.amount}")) * " "
+        + f"{receipt.total}\n"
+        f"Rest" + (35 - 4 - len(f"{receipt.rest}")) * " " + f"{receipt.rest}\n"
+        "===================================\n"
+        f"        {receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}        \n"
+        "        Thanks for visiting us       "
     )
     return PlainTextResponse(content=text_receipt)
