@@ -2,12 +2,14 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
+from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 
 from ....db import models
-from ....db.models.constants import PaymentType
+from ....db.models.constants import PaymentTypeEnum
 from ...core.deps import get_db, get_request_user
 from ...schemas.receipt import ReceiptCreate, ReceiptResponse
 
@@ -31,7 +33,7 @@ async def create_receipt(
         } \n
     ] \n
     `payment`: { \n
-        `payment_type`: PaymentType \n
+        `payment_type`: PaymentTypeEnum \n
         `amount`: confloat(gt=0) \n
     } \n
     Responses: \n
@@ -86,7 +88,7 @@ async def create_receipt(
 async def get_my_receipts(
     created_at: Optional[datetime] = None,
     amount: Optional[float] = None,
-    payment_type: Optional[PaymentType] = None,
+    payment_type: Optional[PaymentTypeEnum] = None,
     current_user: models.User = Depends(get_request_user),
     db: Session = Depends(get_db),
 ):
@@ -95,7 +97,7 @@ async def get_my_receipts(
     Query parameters: \n
     `created_at`: Optional[datetime] \n
     `amount`: Optional[float] \n
-    `payment_type` Optional[PaymentType] \n
+    `payment_type` Optional[PaymentTypeEnum] \n
     Responses: \n
     `200` OK \n
     `401` Unauthorized - You did not provide authorization token or it was expired \n
@@ -110,3 +112,38 @@ async def get_my_receipts(
     if payment_type:
         query = query.filter(models.Receipt.payment_type == payment_type)
     return paginate(query)
+
+
+@router.get("/{receipt_id}", status_code=status.HTTP_200_OK)
+async def get_my_receipt_by_id(
+    receipt_id: PositiveInt,
+    db: Session = Depends(get_db),
+):
+    """
+    Get My Receipt By ID \n
+    Path parameters: \n
+    `receipt_id`: Receipt ID \n
+    Responses: \n
+    `200` OK \n
+    `400` Not Found - Returns if Receipt not found \n
+    `401` Unauthorized - You did not provide authorization token or it was expired \n
+    """
+    receipt = (
+        db.query(models.Receipt).filter(models.Receipt.id == receipt_id).one_or_none()
+    )
+    if not receipt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Receipt not found",
+        )
+    text_receipt = (
+        "             Our shop        \n"
+        "=================================\n"
+        f"Amount                        {receipt.amount}\n"
+        f"{receipt.payment_type}                          {receipt.total}\n"
+        f"Rest                          {receipt.rest}\n"
+        "=================================\n"
+        f"      {receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}            \n"
+        "      Thanks for visiting us    "
+    )
+    return PlainTextResponse(content=text_receipt)

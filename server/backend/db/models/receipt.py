@@ -2,7 +2,7 @@ from sqlalchemy import (DECIMAL, VARCHAR, Column, DateTime, ForeignKey, Index,
                         Integer, func)
 
 from ..base import Base
-from .constants import PaymentType
+from .constants import PaymentTypeEnum
 
 
 class Receipt(Base):
@@ -14,7 +14,7 @@ class Receipt(Base):
     )
     payment_type = Column(
         VARCHAR,
-        default=PaymentType.CASH,
+        default=PaymentTypeEnum.CASH,
         doc="Payment type",
         nullable=False,
     )
