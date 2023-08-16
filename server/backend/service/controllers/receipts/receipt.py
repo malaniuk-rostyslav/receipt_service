@@ -24,7 +24,7 @@ async def create_receipt(
 ):
     """
     Create Receipt \n
-    FORM data: \n
+    JSON data: \n
     `products`: [ \n
         { \n
             `name`: str \n
@@ -163,9 +163,9 @@ async def get_my_text_receipt_by_id(
         product_info += (
             f"{float(i.quantity)} X {product.price}\n"
             f"{product.name}"
-            + (35 - len(f"{product.name}") - len(f"{receipt.total}")) * " "
+            + (50 - len(f"{product.name}") - len(f"{receipt.total}")) * " "
             + f"{receipt.total}\n"
-            "===================================\n"
+            "==================================================\n"
         )
     if not receipt:
         raise HTTPException(
@@ -174,15 +174,15 @@ async def get_my_text_receipt_by_id(
         )
     text_receipt = (
         "              Our shop             \n"
-        "===================================\n"
+        "==================================================\n"
         f"{product_info}\n"
-        "Amount" + (35 - 6 - len(f"{receipt.amount}")) * " " + f"{receipt.amount}\n"
+        "Amount" + (50 - 6 - len(f"{receipt.amount}")) * " " + f"{receipt.amount}\n"
         f"{receipt.payment_type}"
-        + (35 - len(f"{receipt.payment_type}") - len(f"{receipt.amount}")) * " "
+        + (50 - len(f"{receipt.payment_type}") - len(f"{receipt.amount}")) * " "
         + f"{receipt.total}\n"
-        f"Rest" + (35 - 4 - len(f"{receipt.rest}")) * " " + f"{receipt.rest}\n"
-        "===================================\n"
-        f"        {receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}        \n"
-        "        Thanks for visiting us       "
+        f"Rest" + (50 - 4 - len(f"{receipt.rest}")) * " " + f"{receipt.rest}\n"
+        "==================================================\n"
+        f"               {receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}                \n"
+        "               Thanks for visiting us               "
     )
     return PlainTextResponse(content=text_receipt)
