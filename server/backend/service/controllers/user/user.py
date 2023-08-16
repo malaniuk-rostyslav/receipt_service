@@ -24,7 +24,7 @@ def register_user(form_data: UserCreate, db: Session = Depends(get_db)) -> Any:
     `password_confirm`: Optional[str] \n
     Responses: \n
     `201` Created \n
-    `400` NotFound - Returns if User with such username already exists \n
+    `400` Bad Request - Returns if User with such username already exists \n
     `422` Unprocessable Entity - Returns if wrong form_data field
     """
     username_exists = db.query(

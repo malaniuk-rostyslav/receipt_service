@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel, PositiveInt, confloat
 
-from ...db.models.constants import PaymentType
+from ...db.models.constants import PaymentTypeEnum
 
 
 class Product(BaseModel):
@@ -13,7 +13,7 @@ class Product(BaseModel):
 
 
 class Payment(BaseModel):
-    payment_type: PaymentType
+    payment_type: PaymentTypeEnum
     amount: confloat(gt=0)
 
 
@@ -25,7 +25,7 @@ class ReceiptCreate(BaseModel):
 class ReceiptResponse(BaseModel):
     id: PositiveInt
     creator_id: PositiveInt
-    payment_type: PaymentType
+    payment_type: PaymentTypeEnum
     amount: confloat(gt=0)
     total: confloat(gt=0)
     rest: float
