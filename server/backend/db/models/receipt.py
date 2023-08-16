@@ -1,8 +1,17 @@
 from sqlalchemy import (DECIMAL, VARCHAR, Column, DateTime, ForeignKey, Index,
-                        Integer, func)
+                        Integer, Table, func)
+from sqlalchemy.orm import relationship
 
 from ..base import Base
 from .constants import PaymentTypeEnum
+
+association_receipt_product_table = Table(
+    "association_receipt_product_table",
+    Base.metadata,
+    Column("receipt_id", ForeignKey("receipt.id", ondelete="CASCADE")),
+    Column("product_id", ForeignKey("product.id", ondelete="CASCADE")),
+    Column("quantity", Integer, nullable=False),
+)
 
 
 class Receipt(Base):
@@ -28,6 +37,11 @@ class Receipt(Base):
         DECIMAL,
         doc="Rest to return to customer",
         nullable=False,
+    )
+    products = relationship(
+        "Product",
+        secondary=association_receipt_product_table,
+        lazy="noload",
     )
     created_at = Column(
         DateTime(timezone=False),
