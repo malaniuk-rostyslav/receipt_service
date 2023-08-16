@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     DB_PORT: str
     POSTGRES_SERVER: str
-    API_V1_STR: str = "/"
     PROJECT_NAME: str
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 

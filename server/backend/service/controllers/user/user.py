@@ -18,10 +18,10 @@ router = APIRouter()
 def register_user(form_data: UserCreate, db: Session = Depends(get_db)) -> Any:
     """
     Register user \n
-    FORM data: \n
+    JSON data: \n
     `username`: str \n
     `password`: str \n
-    `password_confirm`: Optional[str] \n
+    `password_confirm`: str \n
     Responses: \n
     `201` Created \n
     `400` Bad Request - Returns if User with such username already exists \n
