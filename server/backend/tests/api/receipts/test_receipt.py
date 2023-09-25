@@ -6,7 +6,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from ....db.models import constants
-from ....db.models.receipt import association_receipt_product_table
+from ....db.models.receipt import ReceiptHistory
 from ....db.models.user import User
 from ...conftest import TestSession
 from ...db.factories.product import ProductFactory
@@ -144,10 +144,10 @@ def test_success_get_my_receipt_by_id(
     receipt = ReceiptFactory(created_at=datetime, creator_id=user.id)
     product = ProductFactory(created_at=datetime, creator_id=user.id)
     with TestSession() as db:
-        association_receipt_product = association_receipt_product_table.insert().values(
-            receipt_id=receipt.id, product_id=product.id, quantity=5
+        receipt_history = ReceiptHistory(
+            receipt_id=receipt.id, product_id=product.id, quantity=5, price=1, total=5
         )
-        db.execute(association_receipt_product)
+        db.add(receipt_history)
         db.commit()
     response = client.get(f"/receipt/{receipt.id}", headers=header)
     assert response.status_code == status.HTTP_200_OK
@@ -163,10 +163,10 @@ def test_failed_get_my_receipt_by_id_wrong_id(
     receipt = ReceiptFactory(created_at=datetime, creator_id=user.id)
     product = ProductFactory(created_at=datetime, creator_id=user.id)
     with TestSession() as db:
-        association_receipt_product = association_receipt_product_table.insert().values(
-            receipt_id=receipt.id, product_id=product.id, quantity=5
+        receipt_history = ReceiptHistory(
+            receipt_id=receipt.id, product_id=product.id, quantity=5, price=1, total=5
         )
-        db.execute(association_receipt_product)
+        db.add(receipt_history)
         db.commit()
     response = client.get(f"/receipt/{receipt.id+1}", headers=header)
     assert response.status_code == status.HTTP_404_NOT_FOUND

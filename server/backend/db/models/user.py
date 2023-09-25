@@ -21,7 +21,6 @@ class User(Base):
     )
 
     _table_args_ = (
-        Index("ix_user_id_btree", id, postgresql_using="btree"),
         Index(
             "ix_user_username_btree", username, unique=True, postgresql_using="btree"
         ),

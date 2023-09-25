@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from ....db import models
 from ....db.models.constants import PaymentTypeEnum
 from ...core.deps import get_db, get_request_user
-from ...schemas.receipt import ReceiptCreate, ReceiptResponse
+from ...schemas.receipt import Receipt, ReceiptCreate
 
 router = APIRouter()
 
@@ -70,12 +70,14 @@ async def create_receipt(
             )
             db.add(product)
             db.flush()
-        association_receipt_product = (
-            models.association_receipt_product_table.insert().values(
-                receipt_id=receipt.id, product_id=product.id, quantity=i.quantity
-            )
+        receipt_history = models.ReceiptHistory(
+            receipt_id=receipt.id,
+            product_id=product.id,
+            quantity=i.quantity,
+            price=i.price,
+            total=i.quantity * i.price,
         )
-        db.execute(association_receipt_product)
+        db.add(receipt_history)
     db.commit()
     [
         product.__dict__.update(
@@ -89,6 +91,7 @@ async def create_receipt(
         for product in form_data.products
     ]
     receipt_to_return = {
+        "id": receipt.id,
         "products": [product.__dict__ for product in form_data.products],
         "payment": {
             "type": form_data.payment.payment_type,
@@ -101,7 +104,7 @@ async def create_receipt(
     return receipt_to_return
 
 
-@router.get("/", response_model=Page[ReceiptResponse])
+@router.get("/", response_model=Page[Receipt])
 async def get_my_receipts(
     created_at: Optional[datetime] = None,
     amount: Optional[float] = None,
@@ -148,13 +151,13 @@ async def get_my_text_receipt_by_id(
     receipt = (
         db.query(models.Receipt).filter(models.Receipt.id == receipt_id).one_or_none()
     )
-    association_receipt_product = (
-        db.query(models.association_receipt_product_table)
-        .filter(models.association_receipt_product_table.c.receipt_id == receipt_id)
+    receipt_history = (
+        db.query(models.ReceiptHistory)
+        .filter(models.ReceiptHistory.receipt_id == receipt_id)
         .all()
     )
     product_info = ""
-    for i in association_receipt_product:
+    for i in receipt_history:
         product = (
             db.query(models.Product)
             .filter(models.Product.id == i.product_id)

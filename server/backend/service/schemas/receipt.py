@@ -22,7 +22,7 @@ class ReceiptCreate(BaseModel):
     payment: Payment
 
 
-class ReceiptResponse(BaseModel):
+class Receipt(BaseModel):
     id: PositiveInt
     creator_id: PositiveInt
     payment_type: PaymentTypeEnum

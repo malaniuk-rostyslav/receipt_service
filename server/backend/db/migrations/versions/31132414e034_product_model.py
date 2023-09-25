@@ -51,9 +51,6 @@ def upgrade() -> None:
         postgresql_using="btree",
     )
     op.create_index(
-        "ix_product_id_btree", "product", ["id"], unique=False, postgresql_using="btree"
-    )
-    op.create_index(
         "ix_product_name_btree",
         "product",
         ["name"],
@@ -78,7 +75,6 @@ def downgrade() -> None:
     op.drop_index(
         "ix_product_name_btree", table_name="product", postgresql_using="btree"
     )
-    op.drop_index("ix_product_id_btree", table_name="product", postgresql_using="btree")
     op.drop_index(
         "ix_product_created_at_btree", table_name="product", postgresql_using="btree"
     )

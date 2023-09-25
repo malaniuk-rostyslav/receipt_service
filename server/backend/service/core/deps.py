@@ -14,7 +14,7 @@ from ..schemas.token import TokenPayload
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/access-token")
 
 
-def get_db() -> Generator:
+async def get_db() -> Generator:
     with SessionLocal() as db:
         yield db
 

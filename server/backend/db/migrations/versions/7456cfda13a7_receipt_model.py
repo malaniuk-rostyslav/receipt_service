@@ -59,9 +59,6 @@ def upgrade() -> None:
         postgresql_using="btree",
     )
     op.create_index(
-        "ix_receipt_id_btree", "receipt", ["id"], unique=False, postgresql_using="btree"
-    )
-    op.create_index(
         "ix_receipt_payment_type_btree",
         "receipt",
         ["payment_type"],
@@ -96,7 +93,6 @@ def downgrade() -> None:
     op.drop_index(
         "ix_receipt_payment_type_btree", table_name="receipt", postgresql_using="btree"
     )
-    op.drop_index("ix_receipt_id_btree", table_name="receipt", postgresql_using="btree")
     op.drop_index(
         "ix_receipt_created_at_btree", table_name="receipt", postgresql_using="btree"
     )
