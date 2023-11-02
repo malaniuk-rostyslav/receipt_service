@@ -19,7 +19,7 @@ async def get_db() -> Generator:
         yield db
 
 
-def get_request_user(
+async def get_current_user(
     db: Session = Depends(get_db),
     token: str = Depends(reusable_oauth2),
 ):

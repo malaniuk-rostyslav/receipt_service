@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from ....db import models
 from ....db.models.constants import PaymentTypeEnum
-from ...core.deps import get_db, get_request_user
+from ...core.deps import get_current_user, get_db
 from ...schemas.receipt import Receipt, ReceiptCreate
 
 router = APIRouter()
@@ -19,7 +19,7 @@ router = APIRouter()
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_receipt(
     form_data: ReceiptCreate,
-    current_user: models.User = Depends(get_request_user),
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -109,7 +109,7 @@ async def get_my_receipts(
     created_at: Optional[datetime] = None,
     amount: Optional[float] = None,
     payment_type: Optional[PaymentTypeEnum] = None,
-    current_user: models.User = Depends(get_request_user),
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -122,16 +122,16 @@ async def get_my_receipts(
     `200` OK \n
     `401` Unauthorized - You did not provide authorization token or it was expired \n
     """
-    query = db.query(models.Receipt).filter(
+    receipts = db.query(models.Receipt).filter(
         models.Receipt.creator_id == current_user.id
     )
     if created_at:
-        query = query.filter(models.Receipt.created_at >= created_at)
+        receipts = receipts.filter(models.Receipt.created_at >= created_at)
     if amount:
-        query = query.filter(models.Receipt.amount >= amount)
+        receipts = receipts.filter(models.Receipt.amount >= amount)
     if payment_type:
-        query = query.filter(models.Receipt.payment_type == payment_type)
-    return paginate(query)
+        receipts = receipts.filter(models.Receipt.payment_type == payment_type)
+    return paginate(receipts)
 
 
 @router.get("/{receipt_id}", status_code=status.HTTP_200_OK)
@@ -151,6 +151,11 @@ async def get_my_text_receipt_by_id(
     receipt = (
         db.query(models.Receipt).filter(models.Receipt.id == receipt_id).one_or_none()
     )
+    if not receipt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Receipt not found",
+        )
     receipt_history = (
         db.query(models.ReceiptHistory)
         .filter(models.ReceiptHistory.receipt_id == receipt_id)
@@ -165,27 +170,29 @@ async def get_my_text_receipt_by_id(
         )
         product_info += (
             f"{float(i.quantity)} X {product.price}\n"
-            f"{product.name}"
-            + (50 - len(f"{product.name}") - len(f"{receipt.total}")) * " "
-            + f"{receipt.total}\n"
-            "==================================================\n"
-        )
-    if not receipt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Receipt not found",
+            + f"{product.name}".ljust(50 - len(f"{i.total}"))
+            + f"{i.total}\n"
+            + "".ljust(50, "=")
+            + "\n"
         )
     text_receipt = (
-        "              Our shop             \n"
-        "==================================================\n"
-        f"{product_info}\n"
-        "Amount" + (50 - 6 - len(f"{receipt.amount}")) * " " + f"{receipt.amount}\n"
-        f"{receipt.payment_type}"
-        + (50 - len(f"{receipt.payment_type}") - len(f"{receipt.amount}")) * " "
+        "Our shop".center(50)
+        + "\n"
+        + "".ljust(50, "=")
+        + "\n"
+        + f"{product_info}\n"
+        + "Amount"
+        + f"{receipt.amount}".rjust(50 - 6)
+        + "\n"
+        + f"{receipt.payment_type}".ljust(50 - len(f"{receipt.total}"))
         + f"{receipt.total}\n"
-        f"Rest" + (50 - 4 - len(f"{receipt.rest}")) * " " + f"{receipt.rest}\n"
-        "==================================================\n"
-        f"               {receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}                \n"
-        "               Thanks for visiting us               "
+        + f"Rest"
+        + f"{receipt.rest}".rjust(50 - 4)
+        + "\n"
+        + "".ljust(50, "=")
+        + "\n"
+        + f"{receipt.created_at.strftime('%Y-%m-%d %H:%M:%S')}".center(50)
+        + "\n"
+        + "Thanks for visiting us".center(50)
     )
     return PlainTextResponse(content=text_receipt)
